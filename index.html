@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Müzik Yükleme</title>
+</head>
+<body>
+    <h1>Müzik Yükleme</h1>
+    <form action="/upload" method="post" enctype="multipart/form-data">
+        <label for="title">Parça Başlığı:</label>
+        <input type="text" name="title" id="title" required>
+        <br><br>
+        <label for="musicFile">Müzik Dosyası:</label>
+        <input type="file" name="musicFile" id="musicFile" accept="audio/*" required>
+        <br><br>
+        <button type="submit">Yükle</button>
+    </form>
+
+    <h2>Yüklenen Parçalar</h2>
+    <ul id="trackList"></ul>
+
+    <script>
+        async function fetchTracks() {
+            const response = await fetch('/tracks');
+            const tracks = await response.json();
+            const trackList = document.getElementById('trackList');
+            trackList.innerHTML = '';
+            tracks.forEach(track => {
+                const li = document.createElement('li');
+                li.textContent = track.title;
+                trackList.appendChild(li);
+            });
+        }
+        // Sayfa yüklendiğinde parçaları getir
+        fetchTracks();
+    </script>
+</body>
+</html>
