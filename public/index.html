@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Candle Music Group - Müzik Platformu</title>
+</head>
+<body>
+  <h1>Hoş Geldiniz Candle Music Group Platformuna</h1>
+
+  <h2>Kullanıcı Girişi / Kaydı</h2>
+  <form id="loginForm">
+    <input type="text" id="username" placeholder="Kullanıcı Adı" required>
+    <input type="password" id="password" placeholder="Şifre" required>
+    <button type="submit">Giriş Yap</button>
+  </form>
+
+  <hr>
+
+  <h2>Parça Yükleme</h2>
+  <form id="uploadForm" enctype="multipart/form-data">
+    <input type="text" name="title" placeholder="Parça Başlığı" required>
+    <input type="file" name="musicFile" accept="audio/*" required>
+    <button type="submit">Yükle</button>
+  </form>
+
+  <h2>Yüklenen Parçalar</h2>
+  <ul id="tracksList"></ul>
+
+  <script>
+    let token = '';
+
+    // Giriş yapma işlemi
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+      if (data.token) {
+        token = data.token;
+        alert('Giriş başarılı! Candle Music Group ailesine hoş geldiniz.');
+        fetchTracks();
+      } else {
+        alert(data.message || 'Giriş başarısız');
+      }
+    });
+
+    // Parça yükleme işlemi
+    document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const res = await fetch('/api/tracks/upload', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token },
+        body: formData
+      });
+      const data = await res.json();
+      if (data.track) {
+        alert('Parça yüklendi! Candle Music Group ailesine katkınız için teşekkürler.');
+        fetchTracks();
+      } else {
+        alert(data.message || 'Yükleme başarısız');
+      }
+    });
+
+    // Yüklenen parçaları getirir
+    async function fetchTracks() {
+      const res = await fetch('/api/tracks', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      const tracks = await res.json();
+      const list = document.getElementById('tracksList');
+      list.innerHTML = '';
+      tracks.forEach(track => {
+        const li = document.createElement('li');
+        li.textContent = `${track.title} - Yükleyen: ${track.uploadedBy.username}`;
+        list.appendChild(li);
+      });
+    }
+  </script>
+</body>
+</html>
